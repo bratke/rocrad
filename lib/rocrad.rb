@@ -64,12 +64,14 @@ class Rocrad
     generate_uid
     tmp_file  = Pathname.new(Dir::tmpdir).join("#{@uid}_#{@source.sub_ext(".txt").basename}")
     tmp_image = image_to_pnm
-    `gocr #{tmp_image} -o #{tmp_file} #{clear_console_output}`
-    @value = File.read(tmp_file)
-    @uid   = nil
-    remove_file([tmp_image, tmp_file])
-  rescue
-    raise Rocrad::ConversionError
+    begin
+      `gocr #{tmp_image} -o #{tmp_file} #{clear_console_output}`
+      @value = File.read(tmp_file)
+      @uid   = nil
+      remove_file([tmp_image, tmp_file])
+    rescue
+      raise ConversionError
+    end
   end
 
   #TODO: Clear console for MacOS or Windows
@@ -85,7 +87,7 @@ class Rocrad
       convert
       @value
     else
-      raise Rocrad::ImageNotSelectedError
+      raise ImageNotSelectedError
     end
   end
 

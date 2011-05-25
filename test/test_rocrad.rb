@@ -22,6 +22,18 @@ class TestRocrad < Test::Unit::TestCase
     assert_equal "43ZZ", Rocrad.new(@path.join("images", "test.tif").to_s).to_s_without_spaces
   end
 
+  def test_unsupported_file_type_error
+    assert_raise Rocrad::UnsupportedFileTypeError do
+      Rocrad.new(@path.join("images", "test.foo").to_s).to_s_without_spaces
+    end
+  end
+
+  def test_image_not_selected_error
+    assert_raise Rocrad::ImageNotSelectedError do
+      Rocrad.new(@path.join("images", "test.noo").to_s).to_s_without_spaces
+    end
+  end
+
   def test_translate_images_png_jpg
     assert_equal "HW9W", Rocrad.new(@path.join("images", "test.png").to_s).to_s_without_spaces
     assert_equal "3R8Z", Rocrad.new(@path.join("images", "test.jpg").to_s).to_s_without_spaces
