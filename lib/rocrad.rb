@@ -42,7 +42,7 @@ class Rocrad
   #Convert image to pnm
   def image_to_pnm
     generate_uid
-    tmp_file    = Pathname.new(Dir::tmpdir).join("#{@uid}_#{@source.sub_ext(".pnm").basename}")
+    tmp_file    = Pathname.new(Dir::tmpdir).join("#{@uid}_#{@source.sub(@source.extname,".pnm").basename}")
     redirection = "#{@source} > #{tmp_file} #{clear_console_output}"
     case @source.extname
       when ".jpg" then
@@ -62,7 +62,7 @@ class Rocrad
   #Convert image to string
   def convert
     generate_uid
-    tmp_file  = Pathname.new(Dir::tmpdir).join("#{@uid}_#{@source.sub_ext(".txt").basename}")
+    tmp_file  = Pathname.new(Dir::tmpdir).join("#{@uid}_#{@source.sub(@source.extname,".txt").basename}")
     tmp_image = image_to_pnm
     begin
       `gocr #{tmp_image} -o #{tmp_file} #{clear_console_output}`
@@ -93,7 +93,7 @@ class Rocrad
 
   #Remove spaces and break-lines
   def to_s_without_spaces
-    to_s.gsub(" ", "").gsub("\n", "").gsub("\r", "").encode("US-ASCII")
+    to_s.gsub(" ", "").gsub("\n", "").gsub("\r", "")
   end
 
 end
