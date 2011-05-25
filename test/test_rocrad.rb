@@ -1,4 +1,8 @@
-require File.dirname(__FILE__) + '/helper'
+begin
+  require "helper"
+rescue LoadError
+  require File.dirname(__FILE__) + '/helper'
+end
 
 class TestRocrad < Test::Unit::TestCase
 
