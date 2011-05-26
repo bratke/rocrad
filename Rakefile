@@ -14,13 +14,13 @@ require 'rake'
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
-  gem.name = "rocrad"
-  gem.homepage = "http://github.com/EeCnee/rocrad"
-  gem.license = "MIT"
-  gem.summary = %Q{Ruby library for working with Ocrad - The GNU OCR}
+  gem.name        = "rocrad"
+  gem.homepage    = "http://github.com/EeCnee/rocrad"
+  gem.license     = "MIT"
+  gem.summary     = %Q{Ruby library for working with Ocrad - The GNU OCR}
   gem.description = %Q{Ruby library for working with Ocrad - The GNU OCR}
-  gem.email = "EeCnee1@netscape.net"
-  gem.authors = ["Ludwig Bratke"]
+  gem.email       = "EeCnee1@netscape.net"
+  gem.authors     = ["Ludwig Bratke"]
   # dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new
@@ -44,10 +44,10 @@ task :default => :test
 
 require 'rake/rdoctask'
 Rake::RDocTask.new do |rdoc|
-  version = File.exist?('VERSION') ? File.read('VERSION') : ""
+  version       = File.exist?('VERSION') ? File.read('VERSION') : ""
 
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "rocrad #{version}"
+  rdoc.title    = "rocrad #{version}"
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end

@@ -1,6 +1,7 @@
 require "pathname"
 require "tempfile"
 require "uuid"
+require "net/http"
 
 require "rocrad/errors"
 
@@ -8,17 +9,18 @@ class Rocrad
 
   attr_accessor :options
 
+
   def initialize(src="", options={})
     @uid                  = UUID.new
-    @source               = Pathname.new src
+    @source               = get_source src
     @clear_console_output = options.delete(:clear_console_output)
     @clear_console_output = true if @clear_console_output.nil?
     @value = ""
   end
 
-  def source= src
+  def source= src=""
     @value  = ""
-    @source = Pathname.new src
+    @source = get_source src
   end
 
   #TODO: Clear console for MacOS or Windows
@@ -30,8 +32,11 @@ class Rocrad
   #Output value
   def to_s
     return @value if @value != ""
-    if @source.file?
+    if @source.instance_of? Pathname and @source.file?
       convert
+      @value
+    elsif @source.instance_of? URI::HTTP
+      convert_via_http
       @value
     else
       raise ImageNotSelectedError
@@ -45,7 +50,30 @@ class Rocrad
 
   private
 
-    #Remove files
+  def convert_via_http
+    tmp_path = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{Pathname.new(@source.request_uri).basename}")
+    tmp_file = File.new(tmp_path.to_s, File::CREAT|File::TRUNC|File::RDWR, 0644)
+    tmp_file.write(Net::HTTP.get(@source))
+    tmp_file.close
+    uri     = @source
+    @source = tmp_path
+    convert
+    @source = uri
+    remove_file([tmp_path])
+  end
+
+  def get_source(src)
+    case (uri = URI.parse(src)).class.to_s
+      when "URI::HTTP" then
+        uri
+      when "URI::Generic" then
+        Pathname.new(uri.path)
+      else
+        Pathname.new(src)
+    end
+  end
+
+  #Remove files
   def remove_file(files=[])
     files.each do |file|
       begin
@@ -61,8 +89,8 @@ class Rocrad
 
   #Convert image to pnm
   def image_to_pnm
-    tmp_file    = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{@source.sub(@source.extname,".pnm").basename}")
-    redirection = "#{@source} > #{tmp_file} #{clear_console_output}"
+    pnm_image   = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{@source.sub(@source.extname, ".pnm").basename}")
+    redirection = "#{@source} > #{pnm_image} #{clear_console_output}"
     case @source.extname
       when ".jpg" then
         `djpeg -greyscale -pnm #{redirection}`
@@ -75,17 +103,17 @@ class Rocrad
       else
         raise UnsupportedFileTypeError
     end
-    tmp_file
+    pnm_image
   end
 
   #Convert image to string
   def convert
-    tmp_file  = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{@source.sub(@source.extname,".txt").basename}")
-    tmp_image = image_to_pnm
+    txt_file  = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{@source.sub(@source.extname, ".txt").basename}")
+    pnm_image = image_to_pnm
     begin
-      `gocr #{tmp_image} -o #{tmp_file} #{clear_console_output}`
-      @value = File.read(tmp_file)
-      remove_file([tmp_image, tmp_file])
+      `gocr #{pnm_image} -o #{txt_file} #{clear_console_output}`
+      @value = File.read(txt_file)
+      remove_file([pnm_image, txt_file])
     rescue
       raise ConversionError
     end

@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ludwig Bratke"]
-  s.date = %q{2011-05-26}
+  s.date = %q{2011-05-27}
   s.description = %q{Ruby library for working with Ocrad - The GNU OCR}
   s.email = %q{EeCnee1@netscape.net}
   s.extra_rdoc_files = [
@@ -48,20 +48,26 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<rake>, ["= 0.8.7"])
+      s.add_runtime_dependency(%q<uuid>, ["~> 2.3.2"])
+      s.add_development_dependency(%q<mocha>, ["~> 0.9.0"])
+      s.add_development_dependency(%q<rake>, ["~> 0.8.0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.6.0"])
       s.add_development_dependency(%q<rcov>, [">= 0"])
       s.add_development_dependency(%q<test-unit>, ["= 2.3.0"])
     else
-      s.add_dependency(%q<rake>, ["= 0.8.7"])
+      s.add_dependency(%q<uuid>, ["~> 2.3.2"])
+      s.add_dependency(%q<mocha>, ["~> 0.9.0"])
+      s.add_dependency(%q<rake>, ["~> 0.8.0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.6.0"])
       s.add_dependency(%q<rcov>, [">= 0"])
       s.add_dependency(%q<test-unit>, ["= 2.3.0"])
     end
   else
-    s.add_dependency(%q<rake>, ["= 0.8.7"])
+    s.add_dependency(%q<uuid>, ["~> 2.3.2"])
+    s.add_dependency(%q<mocha>, ["~> 0.9.0"])
+    s.add_dependency(%q<rake>, ["~> 0.8.0"])
     s.add_dependency(%q<bundler>, ["~> 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.6.0"])
     s.add_dependency(%q<rcov>, [">= 0"])
