@@ -21,7 +21,7 @@ class TestMixed < Test::Unit::TestCase
       image.add_area(218, 22, 24, 28) # position of z
       image.add_area(248, 24, 22, 22) # position of z
     end
-    assert_equal @txt_tif, mix_block.to_s_without_spaces
+    assert_equal @txt_tif, mix_block.to_s.gsub(/[ \n\r]/, "")
 
     mix_block = Rocrad::Mixed.new(@tif, {:areas => [
         {:x => 28, :y=>19, :w=>25, :h=>25}, #position of 4
@@ -29,7 +29,7 @@ class TestMixed < Test::Unit::TestCase
         {:x => 218, :y=>22, :w=>24, :h=>28}, # position of z
         {:x => 248, :y=>24, :w=>22, :h=>22} # position of z
     ]})
-    assert_equal @txt_tif, mix_block.to_s_without_spaces
+    assert_equal @txt_tif, mix_block.to_s.gsub(/[ \n\r]/, "")
   end
 
   def test_show_areas
@@ -76,15 +76,15 @@ class TestMixed < Test::Unit::TestCase
                        {:x=>218, :h=>28, :w=>24, :y=>22},
                        {:x=>248, :h=>22, :w=>22, :y=>24}]
     assert_equal(areas, mix_block.areas)
-    assert_equal @txt_tif[1..3], mix_block.to_s_without_spaces
+    assert_equal @txt_tif[1..3], mix_block.to_s.gsub(/[ \n\r]/, "")
 
     mix_block.areas = []
     assert_equal([], mix_block.areas)
-    assert_equal "", mix_block.to_s_without_spaces
+    assert_equal "", mix_block.to_s.gsub(/[ \n\r]/, "")
 
     mix_block.areas = nil
-    #assert_equal([], mix_block.areas)
-    assert_equal "", mix_block.to_s_without_spaces
+    assert_equal([], mix_block.areas)
+    assert_equal "", mix_block.to_s.gsub(/[ \n\r]/, "")
   end
 
 end

@@ -38,11 +38,6 @@ class Rocrad
     end
   end
 
-  #Remove spaces and break-lines
-  def to_s_without_spaces
-    to_s.gsub(" ", "").gsub("\n", "").gsub("\r", "")
-  end
-
 #Crop image to convert
   def crop!(x, y, w, h)
     @txt = ""
