@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rocrad}
-  s.version = "0.1.3"
+  s.version = "0.1.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ludwig Bratke"]
@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
     "Rakefile",
     "VERSION",
     "lib/rocrad.rb",
+    "lib/rocrad/binary.rb",
     "lib/rocrad/errors.rb",
     "lib/rocrad/mixed.rb",
     "rocrad.gemspec",
@@ -37,6 +38,7 @@ Gem::Specification.new do |s|
     "test/images/test.png",
     "test/images/test.tif",
     "test/images/test1.tif",
+    "test/test_binary.rb",
     "test/test_mixed.rb",
     "test/test_rocrad.rb"
   ]
