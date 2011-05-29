@@ -6,6 +6,7 @@ require "RMagick"
 
 require "rocrad/errors"
 require "rocrad/mixed"
+require "rocrad/binary"
 
 class Rocrad
 
@@ -14,28 +15,31 @@ class Rocrad
 
   def initialize(src="")
     @uid = UUID.new
-    @src = get_source src
+    @src = build_source src
     @txt = ""
     @tmp = nil
   end
 
   def src=(value="")
     @txt = ""
-    @src = get_source value
+    @src = build_source value
   end
 
-  #Output value
-  def to_s
-    return @txt if @txt != ""
+  def ocr!
     if @src.instance_of? Pathname and @src.file?
-      convert
+      ocr_via_path
       @txt
     elsif @src.instance_of? URI::HTTP
-      convert_via_http
+      ocr_via_http
       @txt
     else
       raise ImageNotSelectedError
     end
+  end
+
+  #Output value
+  def to_s
+    @txt != "" ? @txt : ocr!
   end
 
 #Crop image to convert
@@ -50,23 +54,24 @@ class Rocrad
 
   private
 
+  #Linux console clear
   def cco
-    "2>/dev/null" if File.exist?("/dev/null") #Linux console clear
+    File.exist?("/dev/null") ? "2>/dev/null" : ""
   end
 
-  def convert_via_http
+  def ocr_via_http
     tmp_path = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{Pathname.new(@src.request_uri).basename}")
     tmp_file = File.new(tmp_path.to_s, File::CREAT|File::TRUNC|File::RDWR, 0644)
     tmp_file.write(Net::HTTP.get(@src))
     tmp_file.close
     uri  = @src
     @src = tmp_path
-    convert
+    ocr_via_path
     @src = uri
     remove_file([tmp_path])
   end
 
-  def get_source(src)
+  def build_source(src)
     case (uri = URI.parse(src)).class.to_s
       when "URI::HTTP" then
         uri
@@ -86,9 +91,6 @@ class Rocrad
         system "rm -f #{file} #{cco}"
       end
     end
-    true
-  rescue
-    raise TempFilesNotRemovedError
   end
 
   #Convert image to pnm
@@ -111,18 +113,14 @@ class Rocrad
   end
 
   #Convert image to string
-  def convert
+  def ocr_via_path
     src = @tmp ? @tmp : @src
     txt = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{src.sub(src.extname, ".txt").basename}")
     pnm = image_to_pnm
-    begin
-      `ocrad #{pnm} -l -F utf8 -o #{txt} #{cco}`
-      @txt = File.read(txt)
-      @tmp ? remove_file([pnm, txt, @tmp]) : remove_file([pnm, txt])
-      @tmp = nil
-    rescue
-      raise ConversionError
-    end
+    `ocrad #{pnm} -l -F utf8 -o #{txt} #{cco}`
+    @txt = File.read(txt)
+    @tmp ? remove_file([pnm, txt, @tmp]) : remove_file([pnm, txt])
+    @tmp = nil
   end
 
 end

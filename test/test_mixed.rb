@@ -1,5 +1,8 @@
-require 'helper'
-require 'pathname'
+begin
+  require "helper"
+rescue LoadError
+  require File.dirname(__FILE__) + '/helper'
+end
 
 class TestMixed < Test::Unit::TestCase
 
