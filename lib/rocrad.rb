@@ -2,42 +2,37 @@ require "pathname"
 require "tempfile"
 require "uuid"
 require "net/http"
+require "RMagick"
 
 require "rocrad/errors"
+require "rocrad/mixed"
 
 class Rocrad
 
-  attr_accessor :options
+  attr_accessor :src
+  attr_reader :tmp, :txt
 
-
-  def initialize(src="", options={})
-    @uid                  = UUID.new
-    @source               = get_source src
-    @clear_console_output = options.delete(:clear_console_output)
-    @clear_console_output = true if @clear_console_output.nil?
-    @value = ""
+  def initialize(src="")
+    @uid = UUID.new
+    @src = get_source src
+    @txt = ""
+    @tmp = nil
   end
 
-  def source= src=""
-    @value  = ""
-    @source = get_source src
-  end
-
-  #TODO: Clear console for MacOS or Windows
-  def clear_console_output
-    return "" unless @clear_console_output
-    "2>/dev/null" if File.exist?("/dev/null") #Linux console clear
+  def src=(value="")
+    @txt = ""
+    @src = get_source value
   end
 
   #Output value
   def to_s
-    return @value if @value != ""
-    if @source.instance_of? Pathname and @source.file?
+    return @txt if @txt != ""
+    if @src.instance_of? Pathname and @src.file?
       convert
-      @value
-    elsif @source.instance_of? URI::HTTP
+      @txt
+    elsif @src.instance_of? URI::HTTP
       convert_via_http
-      @value
+      @txt
     else
       raise ImageNotSelectedError
     end
@@ -48,17 +43,31 @@ class Rocrad
     to_s.gsub(" ", "").gsub("\n", "").gsub("\r", "")
   end
 
+#Crop image to convert
+  def crop!(x, y, w, h)
+    @txt = ""
+    src  = Magick::Image.read(@src.to_s).first
+    src.crop!(x, y, w, h)
+    @tmp = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{@src.sub(@src.extname, "-crop#{@src.extname}").basename}")
+    src.write @tmp.to_s
+    self
+  end
+
   private
 
+  def cco
+    "2>/dev/null" if File.exist?("/dev/null") #Linux console clear
+  end
+
   def convert_via_http
-    tmp_path = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{Pathname.new(@source.request_uri).basename}")
+    tmp_path = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{Pathname.new(@src.request_uri).basename}")
     tmp_file = File.new(tmp_path.to_s, File::CREAT|File::TRUNC|File::RDWR, 0644)
-    tmp_file.write(Net::HTTP.get(@source))
+    tmp_file.write(Net::HTTP.get(@src))
     tmp_file.close
-    uri     = @source
-    @source = tmp_path
+    uri  = @src
+    @src = tmp_path
     convert
-    @source = uri
+    @src = uri
     remove_file([tmp_path])
   end
 
@@ -79,41 +88,43 @@ class Rocrad
       begin
         File.unlink(file) if File.exist?(file)
       rescue
-        system "rm -f #{file}"
+        system "rm -f #{file} #{cco}"
       end
     end
     true
   rescue
-    raise Rocrad::TempFilesNotRemovedError
+    raise TempFilesNotRemovedError
   end
 
   #Convert image to pnm
   def image_to_pnm
-    pnm_image   = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{@source.sub(@source.extname, ".pnm").basename}")
-    redirection = "#{@source} > #{pnm_image} #{clear_console_output}"
-    case @source.extname
+    src = @tmp ? @tmp : @src
+    pnm = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{@src.sub(@src.extname, ".pnm").basename}")
+    case @src.extname
       when ".jpg" then
-        `djpeg -greyscale -pnm #{redirection}`
+        `djpeg -colors 2 -grayscale -dct float -pnm #{src} > #{pnm} #{cco}`
       when ".tif" then
-        `tifftopnm #{redirection}`
+        `tifftopnm #{src} > #{pnm} #{cco}`
       when ".png" then
-        `pngtopnm #{redirection}`
+        `pngtopnm  #{src} > #{pnm} #{cco}`
       when ".bmp" then
-        `bmptopnm #{redirection}`
+        `bmptopnm #{src} > #{pnm} #{cco}`
       else
         raise UnsupportedFileTypeError
     end
-    pnm_image
+    pnm
   end
 
   #Convert image to string
   def convert
-    txt_file  = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{@source.sub(@source.extname, ".txt").basename}")
-    pnm_image = image_to_pnm
+    src = @tmp ? @tmp : @src
+    txt = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{src.sub(src.extname, ".txt").basename}")
+    pnm = image_to_pnm
     begin
-      `gocr #{pnm_image} -o #{txt_file} #{clear_console_output}`
-      @value = File.read(txt_file)
-      remove_file([pnm_image, txt_file])
+      `ocrad #{pnm} -l -F utf8 -o #{txt} #{cco}`
+      @txt = File.read(txt)
+      @tmp ? remove_file([pnm, txt, @tmp]) : remove_file([pnm, txt])
+      @tmp = nil
     rescue
       raise ConversionError
     end
