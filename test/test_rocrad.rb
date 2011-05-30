@@ -12,10 +12,18 @@ class TestRocrad < Test::Unit::TestCase
     f      = File.open(@jpg.to_s, "r")
     @chars = f.chars.to_a
     f.close
-    @txt_jpg = ["3", "R", "8", "Z".downcase].*""
+    @txt_jpg = ["3", "R", "8", "Z".downcase].* ""
     @txt_tif = "43ZZ".downcase
-    @txt_png = ["H", "W", "9", "W".downcase].*""
-    @txt_bmp = ["Z".downcase, "L", "A", "6"].*""
+    @txt_png = ["H", "W", "9", "W".downcase].* ""
+    @txt_bmp = ["Z".downcase, "L", "A", "6"].* ""
+  end
+
+  def test_pdf
+    assert Rocrad.new(@path.join("images", "test.pdf")).to_s.include?("This is a test.")
+  end
+
+  def test_ps
+    assert Rocrad.new(@path.join("images", "test.ps")).to_s.include?("This is a test.")
   end
 
   def test_convert_via_http

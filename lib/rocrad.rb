@@ -88,7 +88,7 @@ class Rocrad
       begin
         File.unlink(file) if File.exist?(file)
       rescue
-        system "rm -f #{file} #{cco}"
+        `rm -f #{file} #{cco}`
       end
     end
   end
@@ -97,7 +97,7 @@ class Rocrad
   def image_to_pnm
     src = @tmp ? @tmp : @src
     pnm = Pathname.new(Dir::tmpdir).join("#{@uid.generate}_#{@src.sub(@src.extname, ".pnm").basename}")
-    case @src.extname
+    case @src.extname.downcase
       when ".jpg" then
         `djpeg -colors 2 -grayscale -dct float -pnm #{src} > #{pnm} #{cco}`
       when ".tif" then
@@ -106,6 +106,8 @@ class Rocrad
         `pngtopnm  #{src} > #{pnm} #{cco}`
       when ".bmp" then
         `bmptopnm #{src} > #{pnm} #{cco}`
+      when ".pdf", ".ps" then
+        `gs -sDEVICE=pnmraw -r300 -dNOPAUSE -dBATCH -sOutputFile=- -q #{src} > #{pnm} #{cco}`
       else
         raise UnsupportedFileTypeError
     end
