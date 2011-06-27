@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rocrad}
-  s.version = "0.1.4"
+  s.version = "0.1.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ludwig Bratke"]
-  s.date = %q{2011-05-29}
+  s.date = %q{2011-06-27}
   s.description = %q{Ruby library for working with Ocrad - The GNU OCR}
   s.email = %q{EeCnee1@netscape.net}
   s.extra_rdoc_files = [
@@ -35,7 +35,9 @@ Gem::Specification.new do |s|
     "test/images/test.bmp",
     "test/images/test.foo",
     "test/images/test.jpg",
+    "test/images/test.pdf",
     "test/images/test.png",
+    "test/images/test.ps",
     "test/images/test.tif",
     "test/images/test1.tif",
     "test/test_binary.rb",
